@@ -1,0 +1,93 @@
+# This is an example of the most basic config
+# that will mimic what PgBouncer does in transaction mode with one server.
+
+[general]
+
+log_client_connections = true
+
+# If we should log client disconnections
+log_client_disconnections = true
+
+host = "0.0.0.0"
+port = 6433
+admin_username = "pgcatadmin"
+admin_password = "pgcatadmin"
+
+# Whether to enable prometheus exporter or not.
+enable_prometheus_exporter = false
+
+# Port at which prometheus exporter listens on.
+prometheus_exporter_port = 7000
+
+meta_name = "meta"
+meta_lookup_url = "redis"
+meta_lookup_user = "redis"
+meta_lookup_password = "redis"
+
+[pools.cluster00]
+auth_query="SELECT usename, passwd FROM pg_shadow WHERE usename='$1'"
+
+# Be sure to grant this user LOGIN on Postgres
+auth_query_user = "postgres"
+auth_query_password = "postgres"
+
+proxy = true
+
+[pools.cluster00.users.0]
+username = "postgres"
+#password = "postgres"
+pool_size = 10
+min_pool_size = 1
+pool_mode = "session"
+
+[pools.cluster00.shards.0]
+servers = [
+    ["localhost", 5432, "primary"]
+]
+database = "postgres"
+
+
+[pools.cluster01]
+auth_query="SELECT usename, passwd FROM pg_shadow WHERE usename='$1'"
+
+# Be sure to grant this user LOGIN on Postgres
+auth_query_user = "postgres"
+auth_query_password = "postgres"
+
+proxy = true
+
+[pools.cluster01.users.0]
+username = "postgres"
+#password = "postgres"
+pool_size = 10
+min_pool_size = 1
+pool_mode = "session"
+
+[pools.cluster01.shards.0]
+servers = [
+    ["localhost", 5433, "primary"]
+]
+database = "postgres"
+
+
+[pools.cluster02]
+auth_query="SELECT usename, passwd FROM pg_shadow WHERE usename='$1'"
+
+# Be sure to grant this user LOGIN on Postgres
+auth_query_user = "postgres"
+auth_query_password = "postgres"
+
+proxy = true
+
+[pools.cluster02.users.0]
+username = "postgres"
+#password = "postgres"
+pool_size = 10
+min_pool_size = 1
+pool_mode = "session"
+
+[pools.cluster02.shards.0]
+servers = [
+    ["localhost", 5434, "primary"]
+]
+database = "postgres"
