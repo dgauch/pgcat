@@ -352,6 +352,15 @@ pub struct General {
     pub auth_query: Option<String>,
     pub auth_query_user: Option<String>,
     pub auth_query_password: Option<String>,
+
+    pub meta_name: Option<String>,
+
+    #[serde(default = "General::default_meta_lookup")]
+    pub meta_lookup: Option<String>,
+
+    pub meta_lookup_url: Option<String>,
+    pub meta_lookup_user: Option<String>,
+    pub meta_lookup_password: Option<String>,
 }
 
 impl General {
@@ -437,6 +446,10 @@ impl General {
     pub fn default_server_round_robin() -> bool {
         true
     }
+
+    pub fn default_meta_lookup() -> Option<String> {
+        Some(String::from("redis"))
+    }
 }
 
 impl Default for General {
@@ -476,6 +489,11 @@ impl Default for General {
             auth_query: None,
             auth_query_user: None,
             auth_query_password: None,
+            meta_name: None,
+            meta_lookup: Some(String::from("redis")),
+            meta_lookup_url: None,
+            meta_lookup_user: None,
+            meta_lookup_password: None,
         }
     }
 }
@@ -1450,6 +1468,25 @@ impl Config {
                 }
             }
         };
+
+        // Validation for meta feature
+        if self.general.meta_name.is_some()
+            && (self.general.meta_lookup_user.is_none()
+            || self.general.meta_lookup_password.is_none()
+            || self.general.meta_lookup_url.is_none())
+        {
+            error!(
+                "If meta_name is specified, \
+                you need to provide a value \
+                for `meta_lookup_url`, \
+                `meta_lookup_user`, \
+                `meta_lookup_password`"
+            );
+
+            return Err(Error::BadConfig);
+        }
+
+
 
         for pool in self.pools.values_mut() {
             pool.validate()?;

@@ -27,6 +27,7 @@ use crate::stats::{ClientStats, ServerStats};
 use crate::tls::Tls;
 
 use tokio_rustls::server::TlsStream;
+use crate::meta::MetaConnectionPoolResolver;
 
 /// Incrementally count prepared statements
 /// to avoid random conflicts in places where the random number generator is weak.
@@ -447,10 +448,29 @@ where
             }
         };
 
+        let meta_name = get_config().general.meta_name;
+
+        // determine the pool name based on the database name
+        // If no database name is provided, use the username as the pool name
+        // If the database name is the same as the meta_name, use the MetaConnectionPoolResolver to resolve the pool name
+        // If the database name is other than the meta_name, use the database name as the pool name
         let pool_name = match parameters.get("database") {
-            Some(db) => db,
+            Some(database) => {
+                if meta_name.is_some() && *database == meta_name.unwrap() {
+                    match MetaConnectionPoolResolver::resolve(&username) {
+                        Ok(pool_name) => &pool_name.clone(),
+                        Err(err) => return Err(err),
+                    }
+                } else {
+                    database
+                }
+            }
             None => username,
         };
+
+
+        // Log username and pool name
+        info!("Client connected with username: {} and pool name: {}", username, pool_name);
 
         let application_name = match parameters.get("application_name") {
             Some(application_name) => application_name,

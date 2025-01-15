@@ -19,6 +19,8 @@ pub mod sharding;
 pub mod stats;
 pub mod tls;
 
+pub mod meta;
+
 /// Format chrono::Duration to be more human-friendly.
 ///
 /// # Arguments

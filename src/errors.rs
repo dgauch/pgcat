@@ -30,6 +30,7 @@ pub enum Error {
     QueryRouterError(String),
     InvalidShardId(usize),
     PreparedStatementError,
+    CannotResolvePool(String),
 }
 
 #[derive(Clone, PartialEq, Debug)]
