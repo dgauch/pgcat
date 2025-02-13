@@ -1266,7 +1266,6 @@ async fn create_pool_for_proxy(
     let config = get_config();
     let client_server_map: ClientServerMap = Arc::new(Mutex::new(HashMap::new()));
 
-    let mut new_pools = HashMap::new();
     let mut address_id: usize = 0;
 
     let pool_config_opt = config.pools.get_key_value(db);
@@ -1539,10 +1538,27 @@ async fn create_pool_for_proxy(
         });
     }
 
-    // There is one pool per database/user pair.
-    new_pools.insert(PoolIdentifier::new(pool_name, &user.username), pool.clone());
-
-    POOLS.store(Arc::new(new_pools.clone()));
+    add_connection_pool(PoolIdentifier::new(pool_name, &user.username), pool.clone());
 
     Ok(Option::Some::<ConnectionPool>(pool))
+}
+
+fn add_connection_pool(id: PoolIdentifier, pool: ConnectionPool) {
+    loop {
+        let old_map = POOLS.load(); // Load current Arc<HashMap<..>>
+        let mut new_map = (**old_map).clone(); // Clone and modify
+        new_map.insert(id.clone(), pool.clone());
+
+        let new_arc = Arc::new(new_map); // Wrap in Arc
+
+        // Attempt atomic swap
+        let previous = POOLS.compare_and_swap(&old_map, new_arc);
+
+        // Check if swap was successful
+        if Arc::ptr_eq(&previous, &old_map) {
+            break; // Success, exit loop
+        }
+
+        // Otherwise, retry (another thread modified it)
+    }
 }
