@@ -358,7 +358,7 @@ pub struct General {
     #[serde(default = "General::default_meta_lookup")]
     pub meta_lookup: Option<String>,
 
-    pub meta_lookup_url: Option<String>,
+    pub meta_lookup_host_port: Option<String>,
     pub meta_lookup_user: Option<String>,
     pub meta_lookup_password: Option<String>,
 }
@@ -491,7 +491,7 @@ impl Default for General {
             auth_query_password: None,
             meta_name: None,
             meta_lookup: Some(String::from("redis")),
-            meta_lookup_url: None,
+            meta_lookup_host_port: None,
             meta_lookup_user: None,
             meta_lookup_password: None,
         }
@@ -1473,12 +1473,12 @@ impl Config {
         if self.general.meta_name.is_some()
             && (self.general.meta_lookup_user.is_none()
             || self.general.meta_lookup_password.is_none()
-            || self.general.meta_lookup_url.is_none())
+            || self.general.meta_lookup_host_port.is_none())
         {
             error!(
                 "If meta_name is specified, \
                 you need to provide a value \
-                for `meta_lookup_url`, \
+                for `meta_lookup_host_port`, \
                 `meta_lookup_user`, \
                 `meta_lookup_password`"
             );
