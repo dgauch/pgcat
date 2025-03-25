@@ -447,8 +447,8 @@ where
                 ))
             }
         };
-
-        let meta_name = get_config().general.meta_name;
+        let config = get_config();
+        let meta_name = config.general.meta_name;
 
         // determine the pool name based on the database name
         // If no database name is provided, use the username as the pool name
@@ -457,7 +457,11 @@ where
         let pool_name = match parameters.get("database") {
             Some(database) => {
                 if meta_name.is_some() && *database == meta_name.unwrap() {
-                    match MetaConnectionPoolResolver::resolve(&username) {
+                    let meta_connection_pool_resolver = MetaConnectionPoolResolver::new(
+                        config.general.meta_lookup_host_port.unwrap().to_string(),
+                        config.general.meta_lookup_user.unwrap().to_string(),
+                        config.general.meta_lookup_password.unwrap().to_string());
+                    match meta_connection_pool_resolver.resolve(&username) {
                         Ok(pool_name) => &pool_name.clone(),
                         Err(err) => return Err(err),
                     }
@@ -467,7 +471,6 @@ where
             }
             None => username,
         };
-
 
         // Log username and pool name
         info!("Client connected with username: {} and pool name: {}", username, pool_name);

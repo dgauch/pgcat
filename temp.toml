@@ -20,7 +20,7 @@ enable_prometheus_exporter = false
 prometheus_exporter_port = 7000
 
 meta_name = "meta"
-meta_lookup_url = "redis"
+meta_lookup_host_port = "localhost:6379"
 meta_lookup_user = "redis"
 meta_lookup_password = "redis"
 
